@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6940cdda447048efa58605bd546f9920, type: 3}
+  m_Name: radio-polskie
+  m_EditorClassIdentifier: GifForUnity::GifImporter.Gif
+  Frames:
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: 7e1ca037a184d5d4294e32f3b05162f3, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: 6d490453b90fe3a48b3640166df2486c, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: 27c74f87bb4adbf46bb7c8fe86141359, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: 689cd072a4c688e42b23b6ee1881073f, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: eb3a28530e1d59c42a947ea83cebbf1c, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: 8badb0ef0ab13124f8a3490660b83c61, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: 373986e1eaa407942a89c0053ea29e47, type: 3}
+  - DelayInMs: 100
+    Sprite: {fileID: 21300000, guid: cecc87364286a79448cbb02fc761a6bb, type: 3}
