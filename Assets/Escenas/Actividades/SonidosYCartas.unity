@@ -2844,8 +2844,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1560073814373094524, guid: 9d79f9fd7501c264eaabcf2287ca1c82,
         type: 3}
+      propertyPath: m_CameraYOffset
+      value: 1.62144
+      objectReference: {fileID: 0}
+    - target: {fileID: 1560073814373094524, guid: 9d79f9fd7501c264eaabcf2287ca1c82,
+        type: 3}
       propertyPath: m_RequestedTrackingOriginMode
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1608296381237002865, guid: 9d79f9fd7501c264eaabcf2287ca1c82,
         type: 3}
@@ -3251,6 +3256,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6017581723263293258, guid: 9d79f9fd7501c264eaabcf2287ca1c82,
+        type: 3}
+      propertyPath: m_Height
+      value: 1.62144
       objectReference: {fileID: 0}
     - target: {fileID: 6332999035555792767, guid: 9d79f9fd7501c264eaabcf2287ca1c82,
         type: 3}
