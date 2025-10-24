@@ -6,18 +6,18 @@ using TMPro; // Usaremos la definición de TMP_Text
 public class LevelSequencer : MonoBehaviour
 {
     private const string PROGRESS_KEY = "HighestUnlockedLevel";
+    private const string FIRST_RUN_KEY = "ProgressBar_FirstRun";
 
     [Header("Referencias")]
-    public FadeScreen fadeScreen; 
-    public ProgressBarUpdater progressBarUpdater; 
-    public TMP_Text countdownText; // Referencia al texto para la cuenta regresiva
+    public FadeScreen fadeScreen;
+    public TMP_Text countdownText;
+    public Animator progressAnimator;
 
-    [Header("Tiempos y Escenas")]
-    [Tooltip("Tiempo que la barra se muestra antes de pasar a la cuenta regresiva.")]
-    public float progressDisplayDuration = 3.0f;
+    [Header("Configuración")]
+    public float progressDisplayDuration = 1.5f;  // espera antes de animar/cargar
+    public float animPlayWaitSeconds = 5.5f;  // cuanto dura tu animación de salto
+    public int countdownSeconds = 3;     // cuenta regresiva
 
-    [Tooltip("Duración de la cuenta regresiva en segundos.")]
-    public int countdownSeconds = 3;
 
     [Tooltip("Lista ORDENADA de las escenas de nivel. (Elemento 0 = Nivel 1, Elemento 1 = Nivel 2, etc.)")]
     public string[] LevelSceneNames = new string[]
@@ -31,17 +31,6 @@ public class LevelSequencer : MonoBehaviour
 
     void Start()
     {
-        // --- Lógica de Reinicio del Editor (Mantenida por seguridad durante simulación) ---
-        #if UNITY_EDITOR
-        if (PlayerPrefs.HasKey(PROGRESS_KEY))
-        {
-            // Nota: Esta línea se suele mover al botón de INICIO, no a la barra de progreso.
-            // La mantengo aquí por el flujo de depuración.
-            // PlayerPrefs.DeleteKey(PROGRESS_KEY);
-        }
-        #endif
-        // ----------------------------------------------------------------------------------
-
         // Ocultar texto de cuenta regresiva al inicio.
         if (countdownText != null)
         {
@@ -54,61 +43,43 @@ public class LevelSequencer : MonoBehaviour
             fadeScreen.FadeIn();
         }
 
-        // Asegurarse de que la barra de progreso se actualice al cargar
-        if (progressBarUpdater != null)
-        {
-            progressBarUpdater.UpdateGlobalProgress();
-        }
-
         // Iniciar la secuencia de espera y carga del siguiente nivel
         StartCoroutine(LoadNextLevelRoutine());
     }
 
     private IEnumerator LoadNextLevelRoutine()
     {
-        // 1. Esperar el tiempo de visualización de la barra de progreso.
         yield return new WaitForSeconds(progressDisplayDuration);
 
-        // 2. Determinar el nivel a cargar basado en el progreso guardado
-        int nextLevelID = PlayerPrefs.GetInt(PROGRESS_KEY, 1); 
-        int sceneArrayIndex = nextLevelID - 1; 
+        // --- CAMBIO: leer SIN incrementar. highestUnlocked es 1..N ---
+        int highestUnlocked = PlayerPrefs.GetInt(PROGRESS_KEY, 1);
+        highestUnlocked = Mathf.Clamp(highestUnlocked, 1, LevelSceneNames.Length);
 
-        // --- VERIFICACIÓN DE LÍMITE DE NIVELES ---
-        if (sceneArrayIndex >= 0 && sceneArrayIndex < LevelSceneNames.Length)
+        // Índice de escena a cargar (0-based)
+        int sceneArrayIndex = highestUnlocked - 1;
+        Debug.Log($"[LevelSequencer] HighestUnlockedLevel={highestUnlocked} -> {LevelSceneNames[sceneArrayIndex]}");
+
+        // --- CAMBIO: reproducir la animación que corresponde a haber llegado a este nivel ---
+        // Caso especial: si highestUnlocked == 1 (recién empezando) muestra Idle.
+        if (progressAnimator != null)
         {
-            string sceneToLoad = LevelSceneNames[sceneArrayIndex];
-
-            // 3. Fade OUT (Oscurecer pantalla)
-            if (fadeScreen != null)
-            {
-                fadeScreen.FadeOut();
-                // Esperar a que la transición termine y la pantalla esté completamente negra.
-                yield return new WaitForSeconds(fadeScreen.fadeDuration);
-            }
-            
-            // 4. Cuenta Regresiva (Se ejecuta mientras la pantalla está en negro)
-            if (countdownText != null)
-            {
-                // Opcional: Ocultar la barra para mayor limpieza, aunque no se vea.
-                if (progressBarUpdater != null) progressBarUpdater.gameObject.SetActive(false);
-                
-                yield return StartCoroutine(CountdownRoutine());
-            }
-
-            // 5. Cargar la escena. La nueva escena se encargará del Fade In.
-            SceneManager.LoadScene(sceneToLoad);
+            string animName = GetAnimationNameForProgress(highestUnlocked);
+            if (!string.IsNullOrEmpty(animName))
+                progressAnimator.Play(animName, 0, 0f);
         }
-        else
+        // ------------------------------------------------------------------------------------
+
+        yield return new WaitForSeconds(animPlayWaitSeconds);
+
+        if (fadeScreen != null)
         {
-            // 6. Todos los niveles completados (ir al menú o escena de final de juego)
-            Debug.Log("¡Todos los niveles completados! Volviendo al Menú.");
-            if (fadeScreen != null)
-            {
-                fadeScreen.FadeOut();
-                yield return new WaitForSeconds(fadeScreen.fadeDuration);
-            }
-            SceneManager.LoadScene("Escenas/Menu"); 
+            fadeScreen.FadeOut();
+            yield return new WaitForSeconds(fadeScreen.fadeDuration);
         }
+
+        if (countdownText != null) yield return StartCoroutine(CountdownRoutine());
+
+        SceneManager.LoadScene(LevelSceneNames[sceneArrayIndex]);
     }
 
     private IEnumerator CountdownRoutine()
@@ -128,5 +99,18 @@ public class LevelSequencer : MonoBehaviour
         yield return new WaitForSeconds(0.5f); // Pausa más corta
         
         countdownText.gameObject.SetActive(false);
+    }
+
+    private string GetAnimationNameForProgress(int index)
+    {
+        switch (index)
+        {
+            case 0: return "Idle";        // posición inicial
+            case 1: return "AnimLevel1";  // 1 -> 2
+            case 2: return "AnimLevel2";  // 2 -> 3
+            case 3: return "AnimLevel3";  // 3 -> 4
+            case 4: return "AnimLevel4";  // 4 -> 5
+            default: return "Idle";
+        }
     }
 }
