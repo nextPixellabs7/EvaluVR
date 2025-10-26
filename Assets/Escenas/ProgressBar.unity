@@ -2205,6 +2205,7 @@ MonoBehaviour:
   animWaitSeconds: 2.5
   countdownSeconds: 3
   forceLevel1IfMissingKey: 1
+  StartGameSceneName: startGame
   LevelSceneNames:
   - Escenas/Actividades/Parejas
   - Escenas/Actividades/EscucharYOrdenar

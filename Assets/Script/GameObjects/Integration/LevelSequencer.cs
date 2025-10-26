@@ -5,7 +5,8 @@ using TMPro;
 
 public class LevelSequencer : MonoBehaviour
 {
-    private const string PROGRESS_KEY = "HighestUnlockedLevel"; // guardado externo (1..N)
+    private const string PROGRESS_KEY = "HighestUnlockedLevel";
+    private const string TARGET_INDEX_KEY = "TargetLevelIndex"; // Nueva clave para la intro
 
     [Header("Referencias")]
     public FadeScreen fadeScreen;
@@ -13,10 +14,14 @@ public class LevelSequencer : MonoBehaviour
     public Animator progressAnimator;
 
     [Header("Config")]
-    public float delayBeforeAnim = 1.0f;     // pequeña pausa al entrar
-    public float animWaitSeconds = 2.5f;     // lo que dura tu clip (ajústalo)
-    public int countdownSeconds = 0;         // 0 = sin cuenta regresiva
-    public bool forceLevel1IfMissingKey = true; // si no existe la clave, arranca en 1
+    public float delayBeforeAnim = 1.0f;
+    public float animWaitSeconds = 2.5f;
+    public int countdownSeconds = 0;
+    public bool forceLevel1IfMissingKey = true;
+    
+    // El nombre de la escena de introducción (la que se cargará AHORA)
+    [Tooltip("El nombre de la escena de introducción a la actividad (startGame)")]
+    public string StartGameSceneName = "startGame"; 
 
     [Tooltip("0=Nivel1, 1=Nivel2, ...")]
     public string[] LevelSceneNames = new string[]
@@ -39,46 +44,38 @@ public class LevelSequencer : MonoBehaviour
     {
         yield return new WaitForSeconds(delayBeforeAnim);
 
-        // 1) Leer progreso EXTERNO (NO incrementamos aquí)
-        int highestUnlocked;
-        if (!PlayerPrefs.HasKey(PROGRESS_KEY))
-        {
-            highestUnlocked = forceLevel1IfMissingKey ? 1 : 1;
-            PlayerPrefs.SetInt(PROGRESS_KEY, highestUnlocked);
-            PlayerPrefs.Save();
-            Debug.Log($"[Seq] No había clave. Set -> {highestUnlocked}");
-        }
-        else
+        // 1) Lógica para leer el nivel desbloqueado
+        int highestUnlocked = 1;
+        if (PlayerPrefs.HasKey(PROGRESS_KEY))
         {
             highestUnlocked = PlayerPrefs.GetInt(PROGRESS_KEY, 1);
         }
+        else if (forceLevel1IfMissingKey)
+        {
+            PlayerPrefs.SetInt(PROGRESS_KEY, 1);
+        }
 
-        // Clamp duro
+        // Clamp y cálculo del índice
         highestUnlocked = Mathf.Clamp(highestUnlocked, 1, LevelSceneNames.Length);
         int sceneIndex = highestUnlocked - 1;
-        Debug.Log($"[Seq] HighestUnlockedLevel={highestUnlocked} -> escena '{LevelSceneNames[sceneIndex]}' (idx {sceneIndex})");
+        Debug.Log($"[Seq] HighestUnlockedLevel={highestUnlocked} -> escena destino: '{LevelSceneNames[sceneIndex]}'");
 
-        // 2) Reproducir la animación que corresponde a HABER LLEGADO a ese nivel
-        //    1 -> Idle (posición en el nodo 1)
-        //    2 -> AnimLevel1 (salto 1->2)
-        //    3 -> AnimLevel2 (salto 2->3) ... etc.
+        // 2) Reproducir animación de progreso
         if (progressAnimator != null)
         {
             string anim = GetAnimForReachedLevel(highestUnlocked);
-            Debug.Log($"[Seq] Reproduciendo anim '{anim}'");
-            progressAnimator.Play(anim, 0, 0f); // reproducir desde el inicio
+            progressAnimator.Play(anim, 0, 0f);
         }
-
-        // 3) Espera a que termine tu clip (ajusta animWaitSeconds)
         if (animWaitSeconds > 0f) yield return new WaitForSeconds(animWaitSeconds);
 
-        // 4) Fade + cuenta atrás (opcional) y CARGA la escena correspondiente
+        // 3) Fade Out
         if (fadeScreen != null)
         {
             fadeScreen.FadeOut();
             yield return new WaitForSeconds(fadeScreen.fadeDuration);
         }
 
+        // 4) Cuenta atrás (opcional)
         if (countdownText != null && countdownSeconds > 0)
         {
             countdownText.gameObject.SetActive(true);
@@ -90,20 +87,24 @@ public class LevelSequencer : MonoBehaviour
             countdownText.gameObject.SetActive(false);
         }
 
-        Debug.Log($"[Seq] Cargando escena '{LevelSceneNames[sceneIndex]}'");
-        SceneManager.LoadScene(LevelSceneNames[sceneIndex]);
+        // 5) PASO CLAVE: Guardar el índice del nivel real y cargar la escena de INTRODUCCIÓN
+        PlayerPrefs.SetInt(TARGET_INDEX_KEY, sceneIndex);
+        PlayerPrefs.Save(); 
+        
+        Debug.Log($"[Seq] Cargando escena de Introduccion: {StartGameSceneName}");
+        SceneManager.LoadScene(StartGameSceneName);
     }
 
-    // Mapea "nivel alcanzado" -> nombre del estado/clip en tu Animator
     private string GetAnimForReachedLevel(int reachedLevel)
     {
+        // Mapea el nivel al nombre de tu clip de animación
         switch (reachedLevel)
         {
-            case 1: return "Idle";        // ya estás en el nodo 1
-            case 2: return "AnimLevel1";  // 1 -> 2
-            case 3: return "AnimLevel2";  // 2 -> 3
-            case 4: return "AnimLevel3";  // 3 -> 4
-            case 5: return "AnimLevel4";  // 4 -> 5
+            case 1: return "Idle";
+            case 2: return "AnimLevel1";
+            case 3: return "AnimLevel2";
+            case 4: return "AnimLevel3";
+            case 5: return "AnimLevel4";
             default: return "Idle";
         }
     }
