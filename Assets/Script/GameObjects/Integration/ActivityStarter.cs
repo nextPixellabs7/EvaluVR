@@ -1,68 +1,99 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
-using System.Collections; // Necesario para la Corrutina
+using System.Collections;
+using GifImporter; // NECESARIO para usar las clases Gif y GifPlayer
 
 public class ActivityStarter : MonoBehaviour
 {
     private const string TARGET_INDEX_KEY = "TargetLevelIndex";
+    // Ruta a la subcarpeta dentro de Assets/Resources (donde deben estar tus archivos .gif)
+    private const string GIF_RESOURCE_PATH = "Gifs/"; 
     
     [Header("Referencias UI")]
     public TMP_Text levelTitleText;
-    public GameObject instructionGifContainer; // Objeto que contiene el GIF/Instrucciones
-    public FadeScreen fadeScreen; // Referencia a FadeScreen en esta escena (si aplica)
+    
+    [Tooltip("El GameObject que contiene el Sprite Renderer y el script GifPlayer.")]
+    public GameObject instructionGifContainer; 
+    
+    public FadeScreen fadeScreen; 
     
     [Header("Config. de Escenas")]
-    [Tooltip("El mismo listado de nombres de escenas que tienes en LevelSequencer")]
     public string[] LevelSceneNames; 
-    
-    [Tooltip("Nombre de la escena de menú, para regresar si hay un error")]
     public string MenuSceneName = "Menu (Inicio)"; 
 
     private int targetLevelIndex = -1;
 
     void Start()
     {
+        // Asegurar que el contenedor esté desactivado al inicio
+        if (instructionGifContainer != null)
+        {
+            instructionGifContainer.SetActive(false);
+        }
         LoadTargetLevelData();
     }
     
     private void LoadTargetLevelData()
     {
-        if (PlayerPrefs.HasKey(TARGET_INDEX_KEY))
+        if (!PlayerPrefs.HasKey(TARGET_INDEX_KEY))
         {
-            targetLevelIndex = PlayerPrefs.GetInt(TARGET_INDEX_KEY);
+            Debug.LogError($"[ActivityStarter] Clave '{TARGET_INDEX_KEY}' faltante. Regresando a {MenuSceneName}.");
+            SceneManager.LoadScene(MenuSceneName);
+            return;
+        }
+
+        targetLevelIndex = PlayerPrefs.GetInt(TARGET_INDEX_KEY);
+
+        if (targetLevelIndex >= 0 && targetLevelIndex < LevelSceneNames.Length)
+        {
+            string sceneName = LevelSceneNames[targetLevelIndex];
+            string shortName = sceneName.Substring(sceneName.LastIndexOf('/') + 1);
             
-            if (targetLevelIndex >= 0 && targetLevelIndex < LevelSceneNames.Length)
+            if (levelTitleText != null)
             {
-                // Muestra la información del nivel
-                string sceneName = LevelSceneNames[targetLevelIndex];
-                
-                // Extrae el nombre corto (opcional, para UI)
-                string shortName = sceneName.Substring(sceneName.LastIndexOf('/') + 1);
-                
-                if (levelTitleText != null)
-                {
-                    levelTitleText.text = $"NIVEL {targetLevelIndex + 1}: {shortName.ToUpper()}";
-                }
-                
-                // Aquí podrías tener lógica para activar/cambiar el GIF/instrucciones
-                // basándose en 'targetLevelIndex' o 'shortName'.
-                // Ejemplo: instructionGifContainer.GetComponent<Image>().sprite = Resources.Load<Sprite>($"Gifs/{shortName}");
+                levelTitleText.text = $"{shortName.ToUpper()}";
             }
-            else
+            
+            // === LÓGICA CLAVE: CARGAR GIF y ASIGNARLO al GifPlayer ===
+            if (instructionGifContainer != null)
             {
-                Debug.LogError($"[ActivityStarter] Índice de nivel inválido: {targetLevelIndex}. Regresando al menú.");
-                SceneManager.LoadScene(MenuSceneName);
+                // Intentar obtener el componente GifPlayer
+                GifPlayer gifPlayer = instructionGifContainer.GetComponent<GifPlayer>(); 
+
+                if (gifPlayer != null)
+                {
+                    // 1. Cargar el recurso de tipo 'Gif' usando el nombre corto de la escena
+                    string fullPath = GIF_RESOURCE_PATH + shortName;
+                    Gif loadedGif = Resources.Load<Gif>(fullPath);
+                    
+                    if (loadedGif != null)
+                    {
+                        // 2. Asignar el recurso cargado al componente GifPlayer
+                        gifPlayer.Gif = loadedGif;
+                        
+                        // 3. Activar el contenedor para iniciar la animación
+                        instructionGifContainer.SetActive(true); 
+                        Debug.Log($"[ActivityStarter] GIF cargado y activado: {fullPath}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"[ActivityStarter] No se encontró el recurso GIF en: Resources/{fullPath}. ¿El nombre de la carpeta/archivo coincide exactamente?");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("[ActivityStarter] instructionGifContainer NO tiene el script 'GifPlayer'. Asegúrate de que está adjunto.");
+                }
             }
         }
         else
         {
-            Debug.LogError("[ActivityStarter] Clave 'TargetLevelIndex' faltante. Regresando al menú.");
+            Debug.LogError($"[ActivityStarter] Índice de nivel inválido: {targetLevelIndex}. Regresando a {MenuSceneName}.");
             SceneManager.LoadScene(MenuSceneName);
         }
     }
 
-    // MÉTODO ASOCIADO AL BOTÓN "COMENZAR"
     public void StartActivityButton()
     {
         if (targetLevelIndex >= 0)
@@ -73,14 +104,14 @@ public class ActivityStarter : MonoBehaviour
 
     private IEnumerator LoadLevelRoutine()
     {
-        // 1. Fade out (si tienes un FadeScreen en esta escena)
         if (fadeScreen != null)
         {
             fadeScreen.FadeOut();
+            if (instructionGifContainer != null) instructionGifContainer.SetActive(false); 
+
             yield return new WaitForSeconds(fadeScreen.fadeDuration);
         }
         
-        // 2. Cargar el nivel real
         Debug.Log($"[ActivityStarter] Iniciando nivel: {LevelSceneNames[targetLevelIndex]}");
         SceneManager.LoadScene(LevelSceneNames[targetLevelIndex]);
     }
