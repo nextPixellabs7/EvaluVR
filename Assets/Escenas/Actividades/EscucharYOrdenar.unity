@@ -920,6 +920,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: "GIFacompa\xF1ante"
       objectReference: {fileID: 0}
+    - target: {fileID: 4474478629753346926, guid: 3abafe4f7a96c7e48bfa900afbdcdd55,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6471234813988383460, guid: 3abafe4f7a96c7e48bfa900afbdcdd55,
         type: 3}
       propertyPath: m_LocalScale.x
