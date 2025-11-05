@@ -78,7 +78,7 @@ public class PomponGame : MonoBehaviour
     {
         if(pompones.Count == Totales.Count)
         {
-            TextoTitulo.text = "¡Felicidades, lo has completado!";
+            // TextoTitulo.text = "¡Felicidades, lo has completado!";
             
             // --- INICIA LÓGICA DE TRANSICIÓN AL NIVEL 5 ---
             SaveLevelProgress();

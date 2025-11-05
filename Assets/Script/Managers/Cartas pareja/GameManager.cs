@@ -125,10 +125,10 @@ public class GameManager : MonoBehaviour
             a.SetMatched(true);
             b.SetMatched(true);
             parejasEncontradas++;
-
+            /*
             if (statusText)
                 statusText.SetText($"¡Pareja encontrada! ({parejasEncontradas}/{totalPairs})");
-
+            */
             if (parejasEncontradas >= totalPairs)
             {
                 EndGame(true); // Gana
@@ -140,8 +140,9 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.7f);
             a.Flip(false, snapHome: true);
             b.Flip(false, snapHome: true);
+            /*
             if (statusText)
-                statusText.SetText("No coinciden, intentalo de nuevo");
+                statusText.SetText("No coinciden, intentalo de nuevo");*/
         }
 
         reveladas.Clear();
@@ -156,8 +157,10 @@ public class GameManager : MonoBehaviour
         gameOver = true;
         inputLocked = true;
 
+        /*
         if (statusText)
             statusText.SetText(win ? "¡Ganaste!" : "¡Tiempo agotado!");
+        */
 
         // Guardar el progreso.
         
@@ -191,19 +194,19 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"Transicionando al mapa en {endDelaySeconds} segundos...");
 
-        // 1. Pausa de 5 segundos
+        // Pausa de 5 segundos
         yield return new WaitForSeconds(endDelaySeconds);
 
-        // 2. Ejecutar Fade Out (oscurecer la pantalla)
+        // Ejecutar Fade Out (oscurecer la pantalla)
         if (fadeScreen != null)
         {
             fadeScreen.FadeOut();
 
-            // CRUCIAL: Esperar la duración del Fade Out antes de cargar
+            // Esperar la duración del Fade Out antes de cargar
             yield return new WaitForSeconds(fadeScreen.fadeDuration);
         }
 
-        // 3. Cambiar a la escena del mapa
+        // Cambiar a la escena del mapa
         UnityEngine.SceneManagement.SceneManager.LoadScene(mapSceneName);
     }
 

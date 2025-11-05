@@ -16,8 +16,8 @@ public class SoundsGameManager : MonoBehaviour
     [Tooltip("ID del nivel que esta escena representa (ej: 3 para SonidosYCartas)")]
     [SerializeField] private int currentLevelID = 3; 
     [SerializeField] private string mapSceneName = "Escenas/ProgressBar"; 
-    [SerializeField] private float endDelaySeconds = 3.0f; // Pausa después de terminar el nivel
-    public FadeScreen fadeScreen; // ARRASTRA EL FADEPLANE AQUÍ
+    [SerializeField] private float endDelaySeconds = 3.0f;
+    public FadeScreen fadeScreen;
     private const string PROGRESS_KEY = "HighestUnlockedLevel";
     // --------------------------------------------------
 
@@ -172,6 +172,7 @@ public class SoundsGameManager : MonoBehaviour
             if (nextSpawn)
             {
                 playerRig.MoveCameraToWorldLocation(nextSpawn.position);
+                playerRig.MatchOriginUpCameraForward(nextSpawn.up, nextSpawn.forward);
                 StartCoroutine(ReproducirAudioActual(5));
             }
         }

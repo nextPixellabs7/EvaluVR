@@ -100,9 +100,13 @@ public class SortSizeGame : MonoBehaviour
         objeto.SetCorrecta(esCorrecta);
 
         if (esCorrecta)
+        {
             objeto.BloquearEncontrada();
+        }
         else
+        {
             objeto.BloquearErronea();
+        }
 
         socket.allowHover = false;
         socket.allowSelect = false;
@@ -113,7 +117,7 @@ public class SortSizeGame : MonoBehaviour
             NivelTerminado();
         }
 
-        texto.text = $"Objeto {objeto.GetIDCard()}, colocada: {objeto.GetColocada()}, correcta: {objeto.GetCorrecta()}";
+        //texto.text = $"Objeto {objeto.GetIDCard()}, colocada: {objeto.GetColocada()}, correcta: {objeto.GetCorrecta()}";
     }
 
     public void NivelTerminado()
@@ -132,12 +136,13 @@ public class SortSizeGame : MonoBehaviour
         {
             // --- CÓDIGO DE MULTI-NIVEL EN UNA ESCENA ---
             nivelActual++;
-            texto.text = $"Nivel {nivelActual + 1} de {levels.Length}...";
+            //texto.text = $"Nivel {nivelActual + 1} de {levels.Length}...";
 
             var nextSpawn = levels[nivelActual].spawnPoint;
             if (nextSpawn)
             {
                 playerRig.MoveCameraToWorldLocation(nextSpawn.position);
+                playerRig.MatchOriginUpCameraForward(nextSpawn.up, nextSpawn.forward);
             }
         }
         else
