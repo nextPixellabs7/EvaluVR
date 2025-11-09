@@ -4022,6 +4022,11 @@ PrefabInstance:
       objectReference: {fileID: 1305741799}
     - target: {fileID: 2142349750761981463, guid: e9407ca871396a44eb4ef01a9b6f17ff,
         type: 3}
+      propertyPath: nextLevelToUnlockID
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2142349750761981463, guid: e9407ca871396a44eb4ef01a9b6f17ff,
+        type: 3}
       propertyPath: levels.Array.data[0].spawnPoint
       value: 
       objectReference: {fileID: 568368665}

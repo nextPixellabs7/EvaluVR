@@ -6,7 +6,7 @@ using TMPro;
 public class LevelSequencer : MonoBehaviour
 {
     private const string PROGRESS_KEY = "HighestUnlockedLevel";
-    private const string TARGET_INDEX_KEY = "TargetLevelIndex"; // Nueva clave para la intro
+    private const string TARGET_INDEX_KEY = "TargetLevelIndex";
 
     [Header("Referencias")]
     public FadeScreen fadeScreen;
@@ -18,19 +18,18 @@ public class LevelSequencer : MonoBehaviour
     public float animWaitSeconds = 2.5f;
     public int countdownSeconds = 0;
     public bool forceLevel1IfMissingKey = true;
-    
-    // El nombre de la escena de introducción (la que se cargará AHORA)
-    [Tooltip("El nombre de la escena de introducción a la actividad (startGame)")]
-    public string StartGameSceneName = "startGame"; 
 
-    [Tooltip("0=Nivel1, 1=Nivel2, ...")]
+    [Tooltip("El nombre de la escena de introducción a la actividad (startGame)")]
+    public string StartGameSceneName = "startGame";
+
+    [Tooltip("0=Nivel1, 1=Nivel2, ... (Nuevo Orden Sincronizado)")]
     public string[] LevelSceneNames = new string[]
     {
-        "Escenas/Actividades/Parejas",
-        "Escenas/Actividades/EscucharYOrdenar",
+        "Escenas/Actividades/EscucharYOrdenar", // Nuevo Nivel 1 (Índice 0)
         "Escenas/Actividades/SonidosYCartas",
         "Escenas/Actividades/Pompones",
         "Escenas/Actividades/Ordenar",
+        "Escenas/Actividades/Parejas", // Nuevo Nivel 5 (Índice 4)
     };
 
     void Start()
@@ -89,8 +88,8 @@ public class LevelSequencer : MonoBehaviour
 
         // 5) PASO CLAVE: Guardar el índice del nivel real y cargar la escena de INTRODUCCIÓN
         PlayerPrefs.SetInt(TARGET_INDEX_KEY, sceneIndex);
-        PlayerPrefs.Save(); 
-        
+        PlayerPrefs.Save();
+
         Debug.Log($"[Seq] Cargando escena de Introduccion: {StartGameSceneName}");
         SceneManager.LoadScene(StartGameSceneName);
     }

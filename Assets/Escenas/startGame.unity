@@ -926,11 +926,11 @@ MonoBehaviour:
   instructionGifContainer: {fileID: 2650163561118013210}
   fadeScreen: {fileID: 1019661692}
   LevelSceneNames:
-  - Escenas/Actividades/Parejas
   - Escenas/Actividades/EscucharYOrdenar
   - Escenas/Actividades/SonidosYCartas
   - Escenas/Actividades/Pompones
   - Escenas/Actividades/Ordenar
+  - Escenas/Actividades/Parejas
   MenuSceneName: Menu (Inicio)
 --- !u!4 &1314924889
 Transform:

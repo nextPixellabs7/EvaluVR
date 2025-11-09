@@ -2207,11 +2207,11 @@ MonoBehaviour:
   forceLevel1IfMissingKey: 1
   StartGameSceneName: startGame
   LevelSceneNames:
-  - Escenas/Actividades/Parejas
   - Escenas/Actividades/EscucharYOrdenar
   - Escenas/Actividades/SonidosYCartas
   - Escenas/Actividades/Pompones
   - Escenas/Actividades/Ordenar
+  - Escenas/Actividades/Parejas
 --- !u!4 &1272341757
 Transform:
   m_ObjectHideFlags: 0

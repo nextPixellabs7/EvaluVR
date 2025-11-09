@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Unity.XR.CoreUtils;
-using UnityEngine.SceneManagement; // Necesario para cargar escenas
+using UnityEngine.SceneManagement; 
 
 public class GameManager : MonoBehaviour
 {
@@ -13,11 +13,9 @@ public class GameManager : MonoBehaviour
     // -------------------------
     
     // --- VARIABLES DE TRANSICIÓN Y PROGRESO ---
-    [Header("Progreso y Transición")]
-    [Tooltip("El ID de este nivel. (Ej: 1 para Parejas)")]
-    [SerializeField] private int currentLevelID = 1; 
-    [SerializeField] private string mapSceneName = "Escenas/ProgressBar"; // Nombre de la escena del mapa
-    [SerializeField] private float endDelaySeconds = 5.0f; // 5 segundos de espera
+    [Header("Finalización y Transición")]
+    [SerializeField] private string finalSceneName = "Escenas/Final"; // Nombre de la escena del final
+    [SerializeField] private float endDelaySeconds = 5.0f;
     private const string PROGRESS_KEY = "HighestUnlockedLevel";
     // ------------------------------------------
 
@@ -61,7 +59,7 @@ public class GameManager : MonoBehaviour
         if (playerRig != null && startSpawnPoint != null)
         {
             playerRig.MoveCameraToWorldLocation(startSpawnPoint.position);
-            playerRig.MatchOriginUpCameraForward(startSpawnPoint.up, startSpawnPoint.forward); // opcional, para rotación
+            playerRig.MatchOriginUpCameraForward(startSpawnPoint.up, startSpawnPoint.forward); 
         }
     }
 
@@ -104,7 +102,7 @@ public class GameManager : MonoBehaviour
         if (reveladas.Contains(card)) return;
 
         reveladas.Add(card);
-        card.Flip(true, snapHome: false); // Asumimos que la carta se voltea aquí
+        card.Flip(true, snapHome: false);
 
         if (reveladas.Count == 2)
             StartCoroutine(ResolvePair());
@@ -118,17 +116,12 @@ public class GameManager : MonoBehaviour
         var a = reveladas[0];
         var b = reveladas[1];
 
-        // Se asume que la lógica de volteo está en Card.OnGrab
-
         if (a.PairId == b.PairId && a != b)
         {
             a.SetMatched(true);
             b.SetMatched(true);
             parejasEncontradas++;
-            /*
-            if (statusText)
-                statusText.SetText($"¡Pareja encontrada! ({parejasEncontradas}/{totalPairs})");
-            */
+            
             if (parejasEncontradas >= totalPairs)
             {
                 EndGame(true); // Gana
@@ -140,59 +133,41 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.7f);
             a.Flip(false, snapHome: true);
             b.Flip(false, snapHome: true);
-            /*
-            if (statusText)
-                statusText.SetText("No coinciden, intentalo de nuevo");*/
         }
 
         reveladas.Clear();
         inputLocked = false;
     }
 
-    // FUNCIÓN MODIFICADA: Ahora inicia la transición
+    // FUNCIÓN MODIFICADA: Ahora inicia la transición al final
     private void EndGame(bool win)
     {
         if (gameOver) return;
 
         gameOver = true;
         inputLocked = true;
-
-        /*
-        if (statusText)
-            statusText.SetText(win ? "¡Ganaste!" : "¡Tiempo agotado!");
-        */
-
-        // Guardar el progreso.
         
-        SaveLevelProgress();
-        
-
-        // Inicia la cuenta regresiva para la transición (Gane o Pierda)
-        StartCoroutine(TransitionToProgressSceneRoutine());
+        // ❌ ¡Eliminamos la llamada a SaveLevelProgress()!
+        // ✅ Llamamos a la transición que reinicia el progreso.
+        GoToFinalSceneAndReset(); 
     }
 
-    // FUNCIÓN: Guarda el avance
-    private void SaveLevelProgress()
+    // ⭐ FUNCIÓN CLAVE: REINICIA EL PROGRESO Y VA A LA ESCENA FINAL ⭐
+    public void GoToFinalSceneAndReset()
     {
-        // El siguiente nivel a desbloquear
-        int nextLevelToUnlock = currentLevelID + 1;
-
-        // Obtener el progreso guardado (si no existe, se inicializa en 1)
-        int highestUnlocked = PlayerPrefs.GetInt(PROGRESS_KEY, 1);
-
-        // Actualizar el progreso solo si este nivel es el más avanzado
-        if (nextLevelToUnlock > highestUnlocked)
-        {
-            PlayerPrefs.SetInt(PROGRESS_KEY, nextLevelToUnlock);
-            PlayerPrefs.Save();
-            Debug.Log($"[PROGRESS] Guardando Nivel: {nextLevelToUnlock}");
-        }
+        // 1. Reiniciar el progreso guardado
+        PlayerPrefs.DeleteKey(PROGRESS_KEY);
+        PlayerPrefs.Save();
+        Debug.Log("Juego de Parejas terminado. Progreso reseteado a Nivel 1.");
+        
+        // 2. Iniciar la transición al menú
+        StartCoroutine(TransitionToFinalSceneRoutine());
     }
 
-    // FUNCIÓN MODIFICADA: Pausa, Fade Out y transición
-    private IEnumerator TransitionToProgressSceneRoutine()
+    // FUNCIÓN MODIFICADA: Pausa, Fade Out y transición a la escena final
+    private IEnumerator TransitionToFinalSceneRoutine()
     {
-        Debug.Log($"Transicionando al mapa en {endDelaySeconds} segundos...");
+        Debug.Log($"Transicionando a la escena final en {endDelaySeconds} segundos...");
 
         // Pausa de 5 segundos
         yield return new WaitForSeconds(endDelaySeconds);
@@ -206,8 +181,8 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(fadeScreen.fadeDuration);
         }
 
-        // Cambiar a la escena del mapa
-        UnityEngine.SceneManagement.SceneManager.LoadScene(mapSceneName);
+        // Cambiar a la escena final
+        UnityEngine.SceneManagement.SceneManager.LoadScene(finalSceneName);
     }
 
     public bool CanInteract(Card card)

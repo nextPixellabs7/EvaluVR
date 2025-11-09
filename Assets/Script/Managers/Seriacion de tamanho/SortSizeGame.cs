@@ -3,20 +3,22 @@ using System.Collections;
 using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Necesario para la carga de escena
+using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class SortSizeGame : MonoBehaviour
 {
-    // --- VARIABLES AÑADIDAS PARA TRANSICIÓN ---
-    [Header("Transición Final")]
-    [SerializeField] private string finalSceneName = "Escenas/Final"; // Nombre de la escena del final 
-    [SerializeField] private float endDelaySeconds = 3.0f; // Pausa después de terminar el nivel
-    public FadeScreen fadeScreen; // ARRASTRA EL FADEPLANE AQUÍ
+    // --- VARIABLES AÑADIDAS PARA TRANSICIÓN Y PROGRESO ---
+    [Header("Progreso y Transición")]
+    [Tooltip("El ID del nivel que se desbloqueará DESPUÉS de este (ej: Nivel 5 se desbloquea al terminar Nivel 4).")]
+    [SerializeField] private int nextLevelToUnlockID = 5; // El nivel que sigue a este. 
+    [SerializeField] private string progressSceneName = "Escenas/ProgressBar"; // Nombre de la escena a donde regresa (ProgressBar)
+    [SerializeField] private float endDelaySeconds = 3.0f; 
+    public FadeScreen fadeScreen;
     private const string PROGRESS_KEY = "HighestUnlockedLevel";
     // ------------------------------------------
-    
+
     [Header("Spawn inicial del jugador")]
     [SerializeField] private Transform startSpawnPoint;
 
@@ -64,20 +66,18 @@ public class SortSizeGame : MonoBehaviour
                 Debug.LogError($"[SortSizeGame] Level {lvl} mal configurado: sockets y expectedOrder deben tener mismo largo.");
                 continue;
             }
-
-            // --- CORRECCIÓN: ASIGNAR LISTENERS AQUÍ, YA QUE 'Start' NO SE EJECUTA SI EL JUEGO NO EMPIEZA AQUÍ ---
+            
             foreach (var s in lvl.sockets)
             {
                 if (s == null)
                 {
                     continue;
                 }
-                s.selectEntered.AddListener(OnSocketSelectEntered); // Asignación de listener
+                s.selectEntered.AddListener(OnSocketSelectEntered);
             }
         }
     }
 
-    // --- FUNCIÓN QUE DEBES LLAMAR DESDE EL ON SELECT DEL SOCKET ---
     public void EntroEnSocket(SelectEnterEventArgs args) => OnSocketSelectEntered(args); 
 
     void OnSocketSelectEntered(SelectEnterEventArgs args)
@@ -116,8 +116,6 @@ public class SortSizeGame : MonoBehaviour
         {
             NivelTerminado();
         }
-
-        //texto.text = $"Objeto {objeto.GetIDCard()}, colocada: {objeto.GetColocada()}, correcta: {objeto.GetCorrecta()}";
     }
 
     public void NivelTerminado()
@@ -147,32 +145,28 @@ public class SortSizeGame : MonoBehaviour
         }
         else
         {
-            // --- EL ÚLTIMO NIVEL DEL ARRAY HA TERMINADO ---
-            JuegoTerminado();
+            // --- EL ÚLTIMO SUB-NIVEL DENTRO DE ESTA ESCENA HA TERMINADO ---
+            SaveAndGoToProgressScene(); // LLAMADA CLAVE PARA AVANZAR EL PROGRESO
         }
     }
 
-    // FUNCIÓN MODIFICADA: Ahora reinicia el progreso y transiciona al Menú
-    public void JuegoTerminado()
+    // ⭐ FUNCIÓN CLAVE: GUARDA EL PROGRESO Y VUELVE A LA PANTALLA DE PROGRESO ⭐
+    public void SaveAndGoToProgressScene()
     {
-        texto.text = "¡Aventura Terminada!";
-        
-        // Reiniciamos el progreso para que la próxima partida inicie en el Nivel 1.
-        GoToMenuAndReset();
-    }
-    
-    // --- FUNCIÓN DE TRANSICIÓN FINAL Y REINICIO ---
-    public void GoToMenuAndReset()
-    {
-        // 1. Reiniciar el progreso guardado
-        PlayerPrefs.DeleteKey(PROGRESS_KEY);
-        Debug.Log("Aventura terminada. Progreso reseteado a Nivel 1.");
-        
-        // 2. Iniciar la transición al menú
-        StartCoroutine(TransitionToMenuRoutine());
+        // 1. Aumentar el progreso guardado a 'nextLevelToUnlockID'
+        int highestUnlocked = PlayerPrefs.GetInt(PROGRESS_KEY, 1);
+        if (nextLevelToUnlockID > highestUnlocked)
+        {
+            PlayerPrefs.SetInt(PROGRESS_KEY, nextLevelToUnlockID);
+            PlayerPrefs.Save();
+            Debug.Log($"[PROGRESS] Nivel '{nextLevelToUnlockID}' desbloqueado. Volviendo a la escena de progreso.");
+        }
+
+        // 2. Iniciar la transición
+        StartCoroutine(TransitionToProgressSceneRoutine());
     }
 
-    private IEnumerator TransitionToMenuRoutine()
+    private IEnumerator TransitionToProgressSceneRoutine()
     {
         // Pausa breve para el mensaje final
         yield return new WaitForSeconds(endDelaySeconds); 
@@ -184,7 +178,7 @@ public class SortSizeGame : MonoBehaviour
             yield return new WaitForSeconds(fadeScreen.fadeDuration);
         }
 
-        // Cargar la escena del Final
-        SceneManager.LoadScene(finalSceneName);
+        // Cargar la escena de Progreso para cargar el siguiente nivel
+        SceneManager.LoadScene(progressSceneName);
     }
 }

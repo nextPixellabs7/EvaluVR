@@ -386,7 +386,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76e6b8c9e428a7e43b9a9cef675f8578, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EscuchoYEncuentroManager
-  currentLevelID: 2
+  currentLevelID: 1
   mapSceneName: Escenas/ProgressBar
   endDelaySeconds: 3
   fadeScreen: {fileID: 775600314}
