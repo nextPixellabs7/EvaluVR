@@ -147,12 +147,10 @@ public class GameManager : MonoBehaviour
         gameOver = true;
         inputLocked = true;
         
-        // ❌ ¡Eliminamos la llamada a SaveLevelProgress()!
-        // ✅ Llamamos a la transición que reinicia el progreso.
         GoToFinalSceneAndReset(); 
     }
 
-    // ⭐ FUNCIÓN CLAVE: REINICIA EL PROGRESO Y VA A LA ESCENA FINAL ⭐
+    // FUNCIÓN CLAVE: REINICIA EL PROGRESO Y VA A LA ESCENA FINAL
     public void GoToFinalSceneAndReset()
     {
         // 1. Reiniciar el progreso guardado
